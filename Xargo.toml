@@ -1,0 +1,8 @@
+# Xargo.toml
+[dependencies.core]
+stage = 0
+
+[dependencies.compiler_builtins]
+features = ["mem"]
+stage = 1
+
