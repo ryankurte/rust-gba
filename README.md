@@ -22,7 +22,9 @@ For more useful commands, check out the [makefile](https://github.com/ryankurte/
 
 ### Hardware
 - [Wikipedia GBA Overview](https://en.wikipedia.org/wiki/Game_Boy_Advance)
-- [GBA Hardware](https://www.coranac.com/tonc/text/hardware.htm)
+- [GBA Hardware Overview](https://www.coranac.com/tonc/text/hardware.htm)
+
+### Processor
 - [Wikipedia ARM7TDMI](https://en.wikipedia.org/wiki/ARM7#ARM7TDMI)
 - [ARM7TDMI Reference Manual](http://infocenter.arm.com/help/topic/com.arm.doc.ddi0210c/DDI0210B.pdf)
 
