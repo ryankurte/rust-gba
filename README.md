@@ -15,6 +15,8 @@ At the moment this pretty much just boots. In the future, it'd be neat to have d
 3. Copy `arm7tdmi.json`, `.cargo/config`, `Xargo.toml` and optionally `makefile` from this into your project root
 4. Build with `xargo -v rustc -- -C link-arg=-emain --verbose`
 
+Alternately, you can clone or copy [ryankurte/rust-gba-example](https://github.com/ryankurte/rust-gba-example) and start work from there.
+
 For more useful commands, check out the [makefile](https://github.com/ryankurte/rust-gba/blob/master/makefile)
 
 
