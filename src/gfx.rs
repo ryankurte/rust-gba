@@ -7,12 +7,14 @@ use core::slice;
 pub const IORAM: u32 = 0x04000000;
 pub const VRAM: u32 = 0x06000000;
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum Graphics {
     MODE1,
     MODE2,
     MODE3
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Colour (u16);
 
 impl Colour {
