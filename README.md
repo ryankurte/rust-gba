@@ -2,8 +2,20 @@
 
 Gameboy Advanced support for rust based on the [embedonomicon](https://japaric.github.io/embedonomicon/).
 
+Check out [ryankurte/rust-gba-example](https://github.com/ryankurte/rust-gba-example) for a working example.
+
+## Status
+
+At the moment this pretty much just boots. In the future, it'd be neat to have drivers for the GBA peripherals included. If you implement anything, please do open a PR!
+
 ## Usage
 
+1. Create a new `#[no_std]` binary project with `cargo new --bin`
+2. Add `gba = { git = "https://github.com/ryankurte/rust-gba" }` as a dependency
+3. Copy `arm7tdmi.json`, `.cargo/config`, `Xargo.toml` and optionally `makefile` from this into your project root
+4. Build with `xargo -v rustc -- -C link-arg=-emain --verbose`
+
+For more useful commands, check out the [makefile](https://github.com/ryankurte/rust-gba/blob/master/makefile)
 
 
 ## Resources
@@ -22,6 +34,5 @@ Gameboy Advanced support for rust based on the [embedonomicon](https://japaric.g
 - [DevKitPro crt0 startup script](https://github.com/devkitPro/buildscripts/blob/master/dkarm-eabi/crtls/gba_crt0.s)
 
 
-- [@andre-richter's raspi ]([https://github.com/andre-richter/rust-raspi3-tutorial/tree/master/05_uart0/raspi3_glue]_)
 
 

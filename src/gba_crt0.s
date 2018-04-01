@@ -1,3 +1,6 @@
+@ GBA minimal boot script
+@ ryankurte/rust-gba
+
 .section .text.boot
 .global  _boot
 .cpu arm7tdmi
