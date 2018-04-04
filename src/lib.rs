@@ -6,6 +6,7 @@
 #![feature(asm)]
 #![feature(global_asm)]
 #![feature(compiler_builtins_lib)]
+#![feature(const_fn)]
 #![no_std]
 
 extern crate compiler_builtins;
@@ -15,7 +16,9 @@ use core::ptr;
 pub mod header;
 use header::{Header, LOGO};
 
-pub mod gfx;
+pub mod memory;
+pub mod graphics;
+pub mod input;
 
 // ARM 32-bit boot code 
 // This sets the interrupt and app stack pointers and switches to thumb mode
