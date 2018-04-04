@@ -1,0 +1,76 @@
+use core::slice;
+use core::ops::Index;
+use core::ptr::{read_volatile, write_volatile};
+
+pub const kb: usize = 1024;            // kilobit helper
+pub const mb: usize = kb * 1024;       // megabit helper
+
+// GBA Memory Sections (address and size)
+pub const EWRAM:    (usize, usize) = (0x02000000, 256 * kb);  // 256kb of 16-bit wide External Working RAM (for application use)
+pub const IWRAM:    (usize, usize) = (0x03000000, 32 * kb);   // 32 kb of 32-bit wide Internal Working RAM (for application use)
+pub const IORAM:    (usize, usize) = (0x04000000, 1 * kb);    // 1kb of 16-bit Memory Mapped IO Registers
+pub const PALRAM:   (usize, usize) = (0x05000000, 1 * kb);    // 1kb of 16-bit memory for colour pallets
+pub const VRAM:     (usize, usize) = (0x06000000, 96 * kb);   // 96kb of 16-bit Video RAM for sprites and bitmaps
+pub const OAM:      (usize, usize) = (0x07000000, 1 * kb);    // 1kb of 32-bit Object Attribute Memory, used for control of sprite rendering
+pub const PAKROM:   (usize, usize) = (0x08000000, 32 * mb);   // Up to 32MB of 16-bit Game Pak ROM
+pub const CARTRAM:  (usize, usize) = (0x0E000000, 64 * kb);   // Up to 64k of Cartridge ram for storing saved data
+
+// Region helper wraps regions of a given type in volatile read and writes
+#[derive(Debug, PartialEq)]
+pub struct Region<T: 'static> (&'static mut[T]);
+
+impl <T>From<(usize, usize)> for Region<T> {
+    fn from(v: (usize, usize)) -> Region<T> {
+        Region::new(v.0, v.1)
+    }
+}
+
+impl <T>Region<T> {
+    // New creates a new indexable memory region
+    pub fn new(addr: usize, len: usize) -> Region<T> {
+        unsafe {
+            let data : &mut [T] = slice::from_raw_parts_mut(addr as *mut T, len);
+            Region::<T>(data)
+        }
+    }
+    
+    pub fn read_index(&self, i: usize) -> &T {
+        &self.0[i]
+    }
+    pub fn write_index(&mut self, i: usize, v: T) {
+        self.0[i] = v;
+    }
+
+    pub fn read_addr(addr: u32) -> T {
+        unsafe {
+            read_volatile(addr as *const T)
+        }
+    }
+    pub fn write_addr(addr: u32, v: T) {
+        unsafe {
+            write_volatile(addr as *mut T, v)
+        }
+    }
+    
+}
+
+
+struct Register<T> (T);
+
+trait BitOps {
+    fn read_bit(&self, i: usize) -> bool;
+    //fn write_bit(&self, i: usize, v: bool);
+}
+
+impl BitOps for Register<u32> {
+    fn read_bit(&self, i: usize) -> bool {
+        return self.0 & (1 << i) != 0;
+    }
+}
+
+impl BitOps for Register<u16> {
+    fn read_bit(&self, i: usize) -> bool {
+        return self.0 & (1 << i) != 0;
+    }
+}
+
