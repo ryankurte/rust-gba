@@ -35,6 +35,7 @@ SECTIONS
   .text : { 
     KEEP(*(.text.boot));
     KEEP(*(.text.reset_handler));
+    KEEP(*(.text.isr));
     *(.text .text.*); 
     . = ALIGN(4); 
   } > ROM

@@ -2,7 +2,7 @@
 
 use core::slice;
 
-use ::memory::{Region, VRAM, IORAM};
+use ::memory::{Region, Register, BitOps, VRAM, IORAM, REG_DISPCNT};
 use ::graphics::colour::Colour;
 
 
@@ -21,7 +21,8 @@ pub trait BitmapMode<T> {
 #[derive(Debug, PartialEq)]
 pub struct Mode3 {
     ioram: Region<u16>,
-    vram: Region<u16>
+    vram: Region<u16>,
+    display_control: Register<u16>,
 }
 
 impl BitmapMode<u16> for Mode3 {
@@ -30,6 +31,7 @@ impl BitmapMode<u16> for Mode3 {
         Mode3{
             ioram: Region::from(IORAM),
             vram: Region::new(VRAM.0 + 0x0000, MODE3.0 * MODE3.1 * MODE3.2),
+            display_control: Register::new(REG_DISPCNT),
         }
     }
 
@@ -44,7 +46,7 @@ impl BitmapMode<u16> for Mode3 {
 
     // Enable mode 3
     fn enable(&mut self) {
-        self.ioram.write_index(0, 0x0403);
+        self.ioram.write_index(0, 0x0403)
     }
 
     // Set pixel value for mode 3

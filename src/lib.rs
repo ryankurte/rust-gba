@@ -75,6 +75,18 @@ unsafe fn initialize_data(sdata: *mut u32, edata: *mut u32, sidata: *const u32) 
     }
 }
 
+// ARM 32-bit isr code
+// This pushes to the stack then jumps to isr_master in thumb mode
+// And returns from the interrupt following execution
+global_asm!(include_str!("gba_isr.s"));
+
+/// Handle interrupts from a thumb context
+#[no_mangle]
+#[used]
+pub unsafe extern "C" fn isr_master() {
+    // TODO: read interrupt registers and handle
+}
+
 // Default ROM header
 #[link_section = ".header.header"]
 #[used]
