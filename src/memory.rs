@@ -15,6 +15,10 @@ pub const OAM:      (usize, usize) = (0x07000000, 1 * kb);    // 1kb of 32-bit O
 pub const PAKROM:   (usize, usize) = (0x08000000, 32 * mb);   // Up to 32MB of 16-bit Game Pak ROM
 pub const CARTRAM:  (usize, usize) = (0x0E000000, 64 * kb);   // Up to 64k of Cartridge ram for storing saved data
 
+pub const REG_DISPCNT:  usize = IORAM.0 + 0x0000;   // Display control register
+pub const REG_DISPSTAT: usize = IORAM.0 + 0x0004;   // Display status register
+pub const REG_VCOUNT:   usize = IORAM.0 + 0x0006;   // Display scanline counter register
+
 // Region helper wraps regions of a given type in volatile read and writes
 #[derive(Debug, PartialEq)]
 pub struct Region<T: 'static> (&'static mut[T]);
@@ -54,23 +58,51 @@ impl <T>Region<T> {
     
 }
 
+// Register helper structure
+pub struct Register<T> (T);
 
-struct Register<T> (T);
-
-trait BitOps {
+pub trait BitOps {
     fn read_bit(&self, i: usize) -> bool;
-    //fn write_bit(&self, i: usize, v: bool);
+    fn write_bit(&mut self, i: usize, v: bool);
+    fn read_masked(&self, shift: usize, mask: usize) -> usize;
+    fn write_masked(&mut self, shift: usize, mask: usize, val: usize);
 }
 
 impl BitOps for Register<u32> {
     fn read_bit(&self, i: usize) -> bool {
-        return self.0 & (1 << i) != 0;
+        self.0 & (1 << i) != 0
+    }
+    fn write_bit(&mut self, i: usize, v: bool) {
+        match v {
+            true => self.0 |= 1 << i,
+            false => self.0 &= !(1 << i),
+        }
+    }
+    fn read_masked(&self, shift: usize, mask: usize) -> usize {
+        (self.0 as usize >> shift) & mask
+    }
+
+    fn write_masked(&mut self, shift: usize, mask: usize, val: usize) {
+        self.0 = ((self.0 as usize & !(mask << shift)) | ((val & mask) << shift)) as u32;
     }
 }
 
 impl BitOps for Register<u16> {
     fn read_bit(&self, i: usize) -> bool {
-        return self.0 & (1 << i) != 0;
+        self.0 & (1 << i) != 0
+    }
+    fn write_bit(&mut self, i: usize, v: bool) {
+        match v {
+            true => self.0 |= 1 << i,
+            false => self.0 &= !(1 << i),
+        }
+    }
+    fn read_masked(&self, shift: usize, mask: usize) -> usize {
+        (self.0 as usize >> shift) & mask
+    }
+
+    fn write_masked(&mut self, shift: usize, mask: usize, val: usize) {
+        self.0 = ((self.0 as usize & !(mask << shift)) | ((val & mask) << shift)) as u16;
     }
 }
 
