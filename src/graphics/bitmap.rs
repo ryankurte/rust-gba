@@ -46,7 +46,7 @@ impl BitmapMode<u16> for Mode3 {
 
     // Enable mode 3
     fn enable(&mut self) {
-        self.ioram.write_index(0, 0x0403)
+        self.display_control.zero().set_bit(10, true).set_masked(0, 0b0111, 3).write();
     }
 
     // Set pixel value for mode 3

@@ -7,6 +7,7 @@
 #![feature(global_asm)]
 #![feature(compiler_builtins_lib)]
 #![feature(const_fn)]
+#![feature(associated_type_defaults)]
 #![no_std]
 
 extern crate compiler_builtins;

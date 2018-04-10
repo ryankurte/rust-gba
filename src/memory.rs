@@ -1,5 +1,5 @@
 use core::slice;
-use core::ops::Index;
+use core::ops::{Index, Add, Sub, Not, BitAnd, BitOr, Shl, Shr, BitAndAssign, BitOrAssign};
 use core::ptr::{read_volatile, write_volatile};
 
 pub const kb: usize = 1024;            // kilobit helper
@@ -58,16 +58,158 @@ impl <T>Region<T> {
     
 }
 
-// Register helper structure
-#[derive(Debug, PartialEq)]
-pub struct Register<T> (*mut T);
 
-impl <T>Register<T> {
-    pub fn new(addr: usize) -> Register<T> {
-        let v = addr as *mut T;
-        Register::<T>(v)
+pub trait Zero {
+    fn zero() -> Self;
+}
+
+impl Zero for u16 {
+    fn zero() -> u16 {
+        0
     }
 }
+
+impl Zero for u32 {
+    fn zero() -> u32 {
+        0
+    }
+}
+
+pub trait One {
+    fn one() -> Self;
+}
+
+impl One for u16 {
+    fn one() -> u16 {
+        1
+    }
+}
+
+impl One for u32 {
+    fn one() -> u32 {
+        1
+    }
+}
+
+
+// Unsigned integer trait
+pub trait UnsignedInt<T>: Zero + One
+                    + Not<Output=T> + Add<T, Output=T> + Sub<T, Output=T>
+                    + BitAnd<T, Output=T> + BitOr<T, Output=T> + BitAndAssign<T> + BitOrAssign<T> 
+                    + Shl<T, Output=T> + Shr<T, Output=T>
+                    + Clone + Default + PartialEq {
+                        type Output = T;
+                    }
+
+impl UnsignedInt<u16> for u16 {}
+impl UnsignedInt<u32> for u32 {}
+
+// Register helper structure
+// This uses an internal value and builder approach to simplify interacting with registers.
+#[derive(Debug, PartialEq, Clone)]
+pub struct Register<T: UnsignedInt<T>> (usize, T);
+
+impl <T: UnsignedInt<T>>Register<T> {
+    // new creates a new register of the provided type with the specified address
+    // Note that `impl UnsignedInt<T> for T {}` is required for unimplemented types
+    pub fn new(addr: usize) -> Register<T> {
+        Register(addr, T::default())
+    }
+
+    // u16 creates a new 16-bit ride register
+    pub fn u16(addr: usize) -> Register<u16> {
+        Register::<u16>::new(addr)
+    }
+
+    // u32 creates a new 32-bit register
+    pub fn u32(addr: usize) -> Register<u32> {
+        Register::<u32>::new(addr)
+    }
+
+    // read reads the register value and returns a new instance with
+    // internal value set.
+    pub fn read(&mut self) -> Register<T> {
+        let mut reg = self.clone();
+        unsafe {
+            reg.1 = read_volatile(self.0 as *const T)
+        }
+        reg
+    }
+
+    // zero clears the internal register value
+    pub fn zero(&mut self) -> Register<T>  {
+        let mut reg = self.clone();
+        reg.1 = T::zero();
+        reg
+    }
+
+    // value returns the register value
+    pub fn value(&self) -> T {
+        self.1.clone()
+    }
+
+    // set sets the internal value of the register
+    pub fn set(mut self, val: T) -> Register<T>  {
+        self.1 = val;
+        self
+    }
+
+    // and boolean and the provided and current values
+    pub fn and(mut self, val: T) -> Register<T> {
+        self.1 = self.1 & val;
+        self
+    }
+
+    // or ors the provided and current values
+    pub fn or(mut self, val: T) -> Register<T> {
+        self.1 |= val;
+        self
+    }
+
+    // clear clears the masked area of the provided value
+    pub fn clear(mut self, mask: T) -> Register<T> {
+        self.1 &= !mask;
+        self
+    }
+
+    // get_bit returns a boolean consisting to the indexed bit
+    pub fn get_bit(&self, i: T) -> bool {
+        self.1.clone() & (T::one() << i) != T::zero()
+    }
+
+    // set_bit sets a bit in the current value
+    pub fn set_bit(mut self, i: T, v: bool) -> Register<T> {
+        self.1 = match v {
+            true => self.1 | (T::one() << i),
+            false => self.1 & !(T::one() << i),
+        };
+        self
+    }
+
+    // get_masked fetches a value with the provided mask and shift
+    // Note that shift is applied prior to masking, so mask should always start at 0b1
+    pub fn get_masked(&self, shift: T, mask: T, val: T) -> T  {
+        (self.1.clone() >> shift) & mask
+    }
+
+    // set_masked sets a value with a provided mask and shift
+    // Note that mask is applied before shifting, so mask should always start at 0b1
+    pub fn set_masked(mut self, shift: T, mask: T, val: T) -> Register<T>  {
+        self.clear(mask.clone()).or((val & mask) << shift)
+    }
+
+    // write writes the internal value to the register
+    pub fn write(self) {
+        unsafe {
+            write_volatile(self.0 as *mut T, self.1)
+        }
+    }
+}
+
+pub trait RegisterOps<T> {
+    fn mask(self, mask: T) -> Self;
+}
+
 
 pub trait BitOps {
     fn read_bit(&self, i: usize) -> bool;
@@ -75,57 +217,3 @@ pub trait BitOps {
     fn read_masked(&self, shift: usize, mask: usize) -> usize;
     fn write_masked(&mut self, shift: usize, mask: usize, val: usize);
 }
-
-impl BitOps for Register<u32> {
-    fn read_bit(&self, i: usize) -> bool {
-        unsafe {
-            *self.0 & (1 << i) != 0
-        }
-    }
-    fn write_bit(&mut self, i: usize, v: bool) {
-        unsafe {
-            match v {
-                true => *self.0 |= 1 << i,
-                false => *self.0 &= !(1 << i),
-            }
-        }
-    }
-    fn read_masked(&self, shift: usize, mask: usize) -> usize {
-        unsafe {
-            (*self.0 as usize >> shift) & mask
-        }
-    }
-
-    fn write_masked(&mut self, shift: usize, mask: usize, val: usize) {
-        unsafe {
-            *self.0 = ((*self.0 as usize & !(mask << shift)) | ((val & mask) << shift)) as u32;
-        }
-    }
-}
-
-impl BitOps for Register<u16> {
-    fn read_bit(&self, i: usize) -> bool {
-        unsafe {
-            *self.0 & (1 << i) != 0
-        }
-    }
-    fn write_bit(&mut self, i: usize, v: bool) {
-        unsafe {
-            match v {
-                true => *self.0 |= 1 << i,
-                false => *self.0 &= !(1 << i),
-            }
-        }
-    }
-    fn read_masked(&self, shift: usize, mask: usize) -> usize {
-        unsafe {
-            (*self.0 as usize >> shift) & mask
-        }
-    }
-    fn write_masked(&mut self, shift: usize, mask: usize, val: usize) {
-        unsafe {
-            *self.0 = ((*self.0 as usize & !(mask << shift)) | ((val & mask) << shift)) as u16;
-        }
-    }
-}
-
