@@ -2,8 +2,11 @@
 
 use core::slice;
 
-use ::memory::{Region, Register, VRAM, IORAM, REG_DISPCNT};
-use ::graphics::colour::Colour;
+use memory::{VRAM, IORAM, REG_DISPCNT, DISPCNT};
+use graphics::colour::Colour;
+
+use embedded_builder::register::Register;
+use embedded_builder::region::Region;
 
 
 const MODE3: (usize, usize, usize)  = (240, 160, 16);  // Mode 3, 240x160@16bpp single buffer
@@ -47,7 +50,7 @@ impl BitmapMode<u16> for Mode3 {
 
     // Enable mode 3
     fn enable(&mut self) {
-        self.display_control.zero().set_bit(10, true).set_masked(0, 0b0111, 3).write();
+        self.display_control.zero().set_mode(3).enable_bg2(true).write();
     }
 
     // Set pixel value for mode 3
@@ -62,6 +65,7 @@ pub struct Mode4 {
     ioram: Region<u16>,
     vram: [Region<u16>; 2],
     active: usize,
+    display_control: Register<u16>,
 }
 
 impl BitmapMode<u8> for Mode4 {
@@ -74,6 +78,7 @@ impl BitmapMode<u8> for Mode4 {
                 Region::new(VRAM.0 + 0xA000, MODE4.0 * MODE4.1 * MODE4.2 / 8),
             ],
             active: 0,
+            display_control: Register::new(REG_DISPCNT),
         }
     }
 
@@ -84,7 +89,7 @@ impl BitmapMode<u8> for Mode4 {
 
     // Enable mode 3
     fn enable(&mut self) {
-        self.ioram.write_index(0, 0x0404);
+        self.display_control.zero().set_mode(4).enable_bg2(true).write();
     }
 
     fn swap(&mut self) {
@@ -114,6 +119,7 @@ pub struct Mode5 {
     ioram: Region<u16>,
     vram: [Region<u16>; 2],
     active: usize,
+    display_control: Register<u16>,
 }
 
 impl BitmapMode<u16> for Mode5 {
@@ -126,6 +132,7 @@ impl BitmapMode<u16> for Mode5 {
                 Region::new(VRAM.0 + 0xA000, MODE5.0 * MODE5.1 * MODE5.2 / 8),
             ],
             active: 0,
+            display_control: Register::new(REG_DISPCNT),
         }
     }
 
@@ -136,7 +143,7 @@ impl BitmapMode<u16> for Mode5 {
 
     // Enable mode 3
     fn enable(&mut self) {
-        self.ioram.write_index(0, 0x0405);
+        self.display_control.zero().set_mode(5).enable_bg2(true).write();
     }
 
     fn swap(&mut self) {

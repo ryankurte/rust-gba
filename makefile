@@ -8,8 +8,9 @@ all: build size fix
 
 build: $(OUTDIR)/$(APP)
 
+# Target path required due to https://github.com/rust-lang/cargo/issues/4905
 $(OUTDIR)/$(APP):
-	xargo -v rustc -- -C link-arg=-emain --verbose
+	RUST_TARGET_PATH=`pwd` xargo -v rustc -- -C link-arg=-emain --verbose
 
 fix: $(OUTDIR)/$(APP).gba
 

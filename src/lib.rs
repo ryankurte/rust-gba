@@ -12,6 +12,9 @@
 
 extern crate compiler_builtins;
 
+#[macro_use]
+extern crate embedded_builder;
+
 use core::ptr;
 
 pub mod header;
