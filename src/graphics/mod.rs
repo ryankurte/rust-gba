@@ -5,8 +5,9 @@
 pub mod colour;
 pub mod bitmap;
 pub mod tilemap;
+pub mod helpers;
 
-use graphics::bitmap::{BitmapMode, Mode3};
+use graphics::bitmap::{BitmapMode};
 
 #[derive(Debug, PartialEq)]
 #[repr(C)]

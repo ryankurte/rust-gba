@@ -18,6 +18,7 @@ pub trait BitmapMode<T> {
     fn set(&mut self, x: usize, y: usize, c: T);
 }
 
+#[doc = "Mode 3 240x16 16-bit single buffered"]
 #[derive(Debug, PartialEq)]
 pub struct Mode3 {
     ioram: Region<u16>,
@@ -55,6 +56,7 @@ impl BitmapMode<u16> for Mode3 {
     }
 }
 
+#[doc = "Mode 4 240x160 8-bit pallet lookup with swap buffer"]
 #[derive(Debug, PartialEq)]
 pub struct Mode4 {
     ioram: Region<u16>,
@@ -106,6 +108,7 @@ impl BitmapMode<u8> for Mode4 {
     }
 }
 
+#[doc = "Mode 5 160x128 16-bit colour with swap buffer"]
 #[derive(Debug, PartialEq)]
 pub struct Mode5 {
     ioram: Region<u16>,
@@ -146,6 +149,10 @@ impl BitmapMode<u16> for Mode5 {
     // Set pixel value for mode 5
     // Note that VRAM can only be written in 16-bit chunks
     fn set(&mut self, x: usize, y: usize, c: u16) {
-        self.vram[self.active].write_index(x + y * MODE5.0, c);
+        match self.active {
+            0 => { self.vram[1].write_index(x + y * MODE5.0, c); },
+            _ => { self.vram[0].write_index(x + y * MODE5.0, c); },
+        };
+       
     }
 }
