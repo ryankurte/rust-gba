@@ -11,4 +11,4 @@ license = "MIT"
 gcc = "0.3.54"
 
 [dependencies]
-#num = "0.1.42"
+#embedded-builder = { path = "../embedded-builder" }

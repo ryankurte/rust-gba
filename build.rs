@@ -16,6 +16,11 @@ fn main() {
         .write_all(include_bytes!("src/gba_cart.ld"))
         .unwrap();
 
+     File::create(out.join("arm7tdmi.json"))
+        .unwrap()
+        .write_all(include_bytes!("arm7tdmi.json"))
+        .unwrap();
+
     // Build gbafix (sorts out cart headers / checksums)
     Command::new("gcc").args(&["src/gbafix.c", "-o"])
                        .arg(&format!("{}/gbafix", out.to_str().unwrap()))

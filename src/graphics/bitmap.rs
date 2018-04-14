@@ -2,7 +2,7 @@
 
 use core::slice;
 
-use ::memory::{Region, Register, BitOps, VRAM, IORAM, REG_DISPCNT};
+use ::memory::{Region, Register, VRAM, IORAM, REG_DISPCNT};
 use ::graphics::colour::Colour;
 
 
