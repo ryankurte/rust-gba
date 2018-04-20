@@ -19,6 +19,7 @@ pub trait BitmapMode<T> {
     fn enable(&mut self);
     fn swap(&mut self);
     fn set(&mut self, x: usize, y: usize, c: T);
+    fn clear(&mut self);
 }
 
 #[doc = "Mode 3 240x16 16-bit single buffered"]
@@ -56,6 +57,14 @@ impl BitmapMode<u16> for Mode3 {
     // Set pixel value for mode 3
     fn set(&mut self, x: usize, y: usize, c: u16) {
         self.vram.write_index(x+y*MODE3.0, c);
+    }
+
+    fn clear(&mut self) {
+        for x in 0..self.bounds().0 {
+            for y in 0..self.bounds().1 {
+                self.set(x, y, 0);
+            }
+        }
     }
 }
 
@@ -111,6 +120,14 @@ impl BitmapMode<u8> for Mode4 {
         };
         self.vram[self.active].write_index(i / 2, v);
     }
+
+    fn clear(&mut self) {
+        for x in 0..self.bounds().0 {
+            for y in 0..self.bounds().1 {
+                self.set(x, y, 0);
+            }
+        }
+    }
 }
 
 #[doc = "Mode 5 160x128 16-bit colour with swap buffer"]
@@ -160,6 +177,13 @@ impl BitmapMode<u16> for Mode5 {
             0 => { self.vram[1].write_index(x + y * MODE5.0, c); },
             _ => { self.vram[0].write_index(x + y * MODE5.0, c); },
         };
-       
+    }
+
+    fn clear(&mut self) {
+        for x in 0..self.bounds().0 {
+            for y in 0..self.bounds().1 {
+                self.set(x, y, 0);
+            }
+        }
     }
 }

@@ -23,6 +23,7 @@ pub const CARTRAM:  (usize, usize) = (0x0E000000, 64 * kb);   // Up to 64k of Ca
 pub const REG_DISPCNT:  usize = IORAM.0 + 0x0000;   // Display control register
 pub const REG_DISPSTAT: usize = IORAM.0 + 0x0004;   // Display status register
 pub const REG_VCOUNT:   usize = IORAM.0 + 0x0006;   // Display scanline counter register
+pub const REG_KEYINPUT: usize = IORAM.0 + 0x0130;   // Key input register
 
 // Display control register traits
 register!(DISPCNT, u16, 
@@ -39,5 +40,21 @@ register!(DISPCNT, u16,
         w, enable_bg2,   1,  bool,  10;        // Enable background 2 rendering
         w, enable_bg3,   1,  bool,  11;        // Enable background 3 rendering
         w, enable_obj,   1,  bool,  12;        // Enable object rendering
+    ]
+);
+
+// Key input register traits
+register!(KEYINPUT, u16, 
+    [
+        r, a, 1,      bool,   0;
+        r, b, 1,      bool,   1;
+        r, select, 1, bool,   2;
+        r, start, 1,  bool,   3;
+        r, right, 1,  bool,   4;
+        r, left, 1,   bool,   5;
+        r, up, 1,     bool,   6;
+        r, down, 1,   bool,   7;
+        r, r, 1,      bool,   8;
+        r, l, 1,      bool,   9;
     ]
 );
