@@ -10,7 +10,6 @@
 #![feature(associated_type_defaults)]
 #![no_std]
 
-extern crate compiler_builtins;
 
 #[macro_use]
 extern crate embedded_builder;
@@ -86,7 +85,6 @@ global_asm!(include_str!("gba_isr.s"));
 
 /// Handle interrupts from a thumb context
 #[no_mangle]
-#[used]
 pub unsafe extern "C" fn isr_master() {
     // TODO: read interrupt registers and handle
 }

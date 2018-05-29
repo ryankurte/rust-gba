@@ -7,6 +7,8 @@ pub mod bitmap;
 pub mod tilemap;
 pub mod helpers;
 
+use embedded_builder::register::Register;
+use memory::{REG_DISPSTAT, DISPSTAT};
 use graphics::bitmap::{BitmapMode};
 
 #[derive(Debug, PartialEq)]
@@ -23,11 +25,17 @@ pub enum Mode {
 pub enum None {}
 
 pub struct Graphics<T> {
-    mode: T
+    mode: T,
 }
 
 // Methods for all graphics implementations
 impl <T>Graphics<T> {
+    fn base(mode: T) -> Graphics<T> {
+        Graphics{
+            mode: mode
+        }
+    }
+
     // Fetch active graphics mode instance
     pub fn active(&mut self) -> &mut T {
         &mut self.mode
@@ -55,7 +63,7 @@ impl Graphics<bitmap::Mode3> {
     pub fn new() -> Graphics<bitmap::Mode3> {
         let mut mode = bitmap::Mode3::new();
         mode.enable();
-        Graphics::<bitmap::Mode3>{mode: mode}
+        Graphics::base(mode)
     }
 }
 
@@ -65,7 +73,7 @@ impl Graphics<bitmap::Mode4> {
     pub fn new() -> Graphics<bitmap::Mode4> {
         let mut mode = bitmap::Mode4::new();
         mode.enable();
-        Graphics::<bitmap::Mode4>{mode: mode}
+        Graphics::base(mode)
     }
 }
 
@@ -75,6 +83,6 @@ impl Graphics<bitmap::Mode5> {
     pub fn new() -> Graphics<bitmap::Mode5> {
         let mut mode = bitmap::Mode5::new();
         mode.enable();
-        Graphics::<bitmap::Mode5>{mode: mode}
+        Graphics::base(mode)
     }
 }
