@@ -29,9 +29,9 @@ register!(DISPCNT, u16,
         r, mode,         1,  u16,   0,  0b111;  // Display mode read
         w, set_mode,     1,  u16,   0,  0b111;  // Display mode write
         r, is_gbc_cart,  1,  bool,  3;          // Check if cartrige is a GBC game
-        w, write_ps,     1,  bool,  4;          // Page Select Write
-        w, write_hb,     1,  bool,  5;          // Allow access to OAM during HBlank
-        w, write_om,     1,  bool,  6;          // Object mapping mode (0=2d, 1=1d)
+        w, set_ps,       1,  bool,  4;          // Page Select Write
+        w, set_hb,       1,  bool,  5;          // Allow access to OAM during HBlank
+        w, set_om,       1,  bool,  6;          // Object mapping mode (0=2d, 1=1d)
         w, force_blank,  1,  bool,  7;          // Force screen blank
         w, enable_bg0,   1,  bool,  8;          // Enable background 0 rendering
         w, enable_bg1,   1,  bool,  9;          // Enable background 1 rendering

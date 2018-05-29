@@ -77,13 +77,20 @@ impl BitmapMode<u16> for Mode3 {
     }
 }
 
+#[doc = "Swap buffer enumeration"]
+#[derive(Debug, PartialEq)]
+enum SwapBuffer {
+    A,
+    B
+}
+
 #[doc = "Mode 4 240x160 8-bit pallet lookup with swap buffer"]
 #[derive(Debug, PartialEq)]
 pub struct Mode4 {
     ioram: Region<u16>,
     vram: [Region<u16>; 2],
     pallet: Region<u16>,
-    active: usize,
+    active: SwapBuffer,
     display_control: Register<u16>,
     display_status: Register<u16>,
 }
@@ -98,7 +105,7 @@ impl BitmapMode<u8> for Mode4 {
                 Region::new(VRAM.0 + 0xA000, MODE4.0 * MODE4.1 * MODE4.2 / 8),
             ],
             pallet: Region::new(PALRAM.0, 256),
-            active: 0,
+            active: SwapBuffer::A,
             display_control: Register::new(REG_DISPCNT),
             display_status: Register::new(REG_DISPSTAT),
         }
@@ -111,14 +118,21 @@ impl BitmapMode<u8> for Mode4 {
 
     // Enable mode 4
     fn enable(&mut self) {
-        self.display_control.zero().set_mode(4).enable_bg2(true).write();
+        self.display_control.zero().set_mode(4).enable_bg2(true).set_ps(false).write();
+
     }
 
     // Swap active and inactive buffers
     fn swap(&mut self) {
         self.active = match self.active {
-            0 => { self.ioram.write_index(0, 0x0414); 1 },
-            _ => { self.ioram.write_index(0, 0x0404); 0 },
+            SwapBuffer::A => { 
+                self.display_control.read().set_ps(true).write();
+                SwapBuffer::B 
+            },
+            SwapBuffer::B => { 
+                self.display_control.read().set_ps(false).write();
+                SwapBuffer::A 
+            },
         };
     }
 
@@ -127,13 +141,17 @@ impl BitmapMode<u8> for Mode4 {
     // Note that VRAM can only be written in 16-bit chunks
     fn set(&mut self, x: usize, y: usize, c: u8) {
         let i = x + y * MODE3.0;
-        let mut v: u16 = *self.vram[self.active].read_index(i / 2);
+        let mut vram = match self.active {
+            SwapBuffer::A => &mut self.vram[1],
+            SwapBuffer::B => &mut self.vram[0],
+        };
+        let mut v: u16 = *vram.read_index(i / 2);
         v = if i % 2 == 0 {
             (v & 0xFF00) | c as u16
         } else {
             (v & 0x00FF) | ((c as u16) << 8)
         };
-        self.vram[self.active].write_index(i / 2, v);
+        vram.write_index(i / 2, v);
     }
 
     // Clear the currently inactive buffer
@@ -202,8 +220,14 @@ impl BitmapMode<u16> for Mode5 {
     // Swap active and inactive buffers
     fn swap(&mut self) {
         self.active = match self.active {
-            0 => { self.ioram.write_index(0, 0x0415); 1 },
-            _ => { self.ioram.write_index(0, 0x0405); 0 },
+            SwapBuffer::A => { 
+                self.display_control.read().set_ps(true).write();
+                SwapBuffer::B 
+            },
+            SwapBuffer::B => { 
+                self.display_control.read().set_ps(false).write();
+                SwapBuffer::A 
+            },
         };
     }
 
@@ -212,8 +236,8 @@ impl BitmapMode<u16> for Mode5 {
     // Note that VRAM can only be written in 16-bit chunks
     fn set(&mut self, x: usize, y: usize, c: u16) {
         match self.active {
-            0 => { self.vram[1].write_index(x + y * MODE5.0, c); },
-            _ => { self.vram[0].write_index(x + y * MODE5.0, c); },
+            SwapBuffer::A => { self.vram[1].write_index(x + y * MODE5.0, c); },
+            SwapBuffer::B => { self.vram[0].write_index(x + y * MODE5.0, c); },
         };
     }
 
