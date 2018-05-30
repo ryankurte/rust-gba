@@ -118,8 +118,9 @@ impl BitmapMode<u8> for Mode4 {
 
     // Enable mode 4
     fn enable(&mut self) {
-        self.display_control.zero().set_mode(4).enable_bg2(true).set_ps(false).write();
-
+        self.display_control.zero()
+            .set_mode(4).enable_bg2(true).set_ps(false)
+            .write();
     }
 
     // Swap active and inactive buffers
@@ -179,8 +180,8 @@ impl PalletMode<u16> for Mode4 {
 }
 
 impl Mode4 {
-    pub fn vsync(&self) -> bool {
-        self.display_control.vblank_status()
+    pub fn vblank(&mut self) -> bool {
+        self.display_control.read().vblank_status()
     }
 }
 
@@ -189,7 +190,7 @@ impl Mode4 {
 pub struct Mode5 {
     ioram: Region<u16>,
     vram: [Region<u16>; 2],
-    active: usize,
+    active: SwapBuffer,
     display_control: Register<u16>,
 }
 
@@ -202,7 +203,7 @@ impl BitmapMode<u16> for Mode5 {
                 Region::new(VRAM.0 + 0x0000, MODE5.0 * MODE5.1 * MODE5.2 / 8), 
                 Region::new(VRAM.0 + 0xA000, MODE5.0 * MODE5.1 * MODE5.2 / 8),
             ],
-            active: 0,
+            active: SwapBuffer::A,
             display_control: Register::new(REG_DISPCNT),
         }
     }

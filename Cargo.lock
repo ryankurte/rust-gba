@@ -1,7 +1,12 @@
 [[package]]
+name = "embedded-builder"
+version = "0.1.1"
+
+[[package]]
 name = "gba"
 version = "0.1.0"
 dependencies = [
+ "embedded-builder 0.1.1",
  "gcc 0.3.54 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
