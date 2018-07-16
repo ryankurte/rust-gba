@@ -1,6 +1,6 @@
 /*
  * Gameboy Advanced ROM Linker Script
- * ryankurte/rust-gba
+ * https://github.com/ryankurte/rust-gba
 */
 
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
@@ -8,9 +8,9 @@ OUTPUT_ARCH(arm)
 
 MEMORY
 {
-  ROM	   : ORIGIN = 0x08000000, LENGTH = 32M
+  ROM    : ORIGIN = 0x08000000, LENGTH = 32M
   EWRAM	 : ORIGIN = 0x02000000, LENGTH = 256K
-	IWRAM	 : ORIGIN = 0x03000000, LENGTH = 32K
+  IWRAM	 : ORIGIN = 0x03000000, LENGTH = 32K
 }
 
 __text_start	=	ORIGIN(ROM);
