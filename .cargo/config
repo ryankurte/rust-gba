@@ -3,7 +3,7 @@ rustflags = [
   "-C", "link-arg=-Tgba_cart.ld",
   "-C", "link-arg=--unresolved-symbols=report-all",
   "-C", "linker=arm-none-eabi-ld",
-  "-Z", "linker-flavor=ld",
+#  "-Z", "linker-flavor=ld",
 ]
 
 [build]

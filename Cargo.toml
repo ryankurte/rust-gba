@@ -1,5 +1,5 @@
 [package]
-name = "gba"
+name = "gba-core"
 version = "0.1.0"
 authors = ["Ryan Kurte <ryankurte@gmail.com>"]
 description = "A support library for writing Gameboy Advanced games in Rust"
@@ -11,4 +11,4 @@ license = "MIT"
 gcc = "0.3.54"
 
 [dependencies]
-embedded-builder = { path = "../embedded-builder" }
+embedded-builder = { path = "../rust-embedded-builder" }

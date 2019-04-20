@@ -2,7 +2,7 @@
 
 use embedded_builder::register::Register;
 
-use ::memory::{KEYINPUT, REG_KEYINPUT};
+use ::memory::{REG_KEYINPUT};
 
 pub struct IO {
     key_input: Register<u16>,

@@ -2,7 +2,6 @@
 // Copyright 2018 Ryan Kurte
 
 #![feature(lang_items)]
-#![feature(used)]
 #![feature(asm)]
 #![feature(global_asm)]
 #![feature(compiler_builtins_lib)]
@@ -113,13 +112,10 @@ static HEADER: Header = Header {
 
 // Rust no-std stubs
 
-#[lang = "panic_fmt"]
-unsafe extern "C" fn panic_fmt(
-    _args: core::fmt::Arguments,
-    _file: &'static str,
-    _line: u32,
-    _col: u32,
-) -> ! {
+use core::panic::PanicInfo;
+
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
     loop {}
 }
 

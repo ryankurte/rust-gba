@@ -7,8 +7,6 @@ pub mod bitmap;
 pub mod tilemap;
 pub mod helpers;
 
-use embedded_builder::register::Register;
-use memory::{REG_DISPSTAT, DISPSTAT};
 use graphics::bitmap::{BitmapMode};
 
 #[derive(Debug, PartialEq)]
@@ -42,17 +40,17 @@ impl <T>Graphics<T> {
     }
     
     // Set graphics to mode 3
-    pub fn mode3(mut self) -> Graphics<bitmap::Mode3> {
+    pub fn mode3(self) -> Graphics<bitmap::Mode3> {
         Graphics::<bitmap::Mode3>::new()
     }
 
     // Set graphics to mode 3
-    pub fn mode4(mut self) -> Graphics<bitmap::Mode4> {
+    pub fn mode4(self) -> Graphics<bitmap::Mode4> {
         Graphics::<bitmap::Mode4>::new()
     }
 
     // Set graphics to mode 3
-    pub fn mode5(mut self) -> Graphics<bitmap::Mode5> {
+    pub fn mode5(self) -> Graphics<bitmap::Mode5> {
         Graphics::<bitmap::Mode5>::new()
     }
 }

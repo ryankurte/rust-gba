@@ -1,13 +1,9 @@
 // Bitmap rendering modes
 
-use core::slice;
-
 use memory::{VRAM, IORAM, PALRAM, REG_DISPCNT, DISPCNT, REG_DISPSTAT, DISPSTAT};
-use graphics::colour::Colour;
 
 use embedded_builder::register::Register;
 use embedded_builder::region::Region;
-
 
 const MODE3: (usize, usize, usize)  = (240, 160, 16);  // Mode 3, 240x160@16bpp single buffer
 const MODE4: (usize, usize, usize)  = (240, 160, 8);   // Mode 4, 240x160@8bpp (pallet lookup) with swap
@@ -142,7 +138,7 @@ impl BitmapMode<u8> for Mode4 {
     // Note that VRAM can only be written in 16-bit chunks
     fn set(&mut self, x: usize, y: usize, c: u8) {
         let i = x + y * MODE3.0;
-        let mut vram = match self.active {
+        let vram = match self.active {
             SwapBuffer::A => &mut self.vram[1],
             SwapBuffer::B => &mut self.vram[0],
         };

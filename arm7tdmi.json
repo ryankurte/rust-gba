@@ -12,8 +12,8 @@
   "data-layout": "e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64",
   "env": "",
   "executables": true,
-  "linker": "arm-none-eabi-gcc",
-  "linker-flavor": "gcc",
+  "linker": "arm-none-eabi-ld",
+  "linker-flavor": "ld",
   "llvm-target": "arm-none-eabi",
   "max-atomic-width": 32,
   "os": "none",
@@ -23,8 +23,15 @@
   "target-endian": "little",
   "target-pointer-width": "32",
   "vendor": "",
-  "pre-link-args": [
-    "-mthumb",
-    "-mthumb-interwork"
-  ]
+  "pre-link-args": {
+    "ld": [
+      "-mthumb",
+      "-mthumb-interwork"
+    ]
+  },
+  "post-link-args": {
+    "ld": [
+      "-Tgba_cart.ld"
+    ]
+  }
 }

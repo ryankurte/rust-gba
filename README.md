@@ -13,7 +13,7 @@ At the moment this pretty much just boots. In the future, it'd be neat to have d
 1. Create a new `#[no_std]` binary project with `cargo new --bin`
 2. Add `gba = { git = "https://github.com/ryankurte/rust-gba" }` as a dependency
 3. Copy `arm7tdmi.json`, `.cargo/config`, `Xargo.toml` and optionally `makefile` from this into your project root
-4. Build with `xargo -v rustc -- -C link-arg=-emain --verbose`
+4. Build with `cargo xbuild --target arm7tdmi.json --release`
 
 Alternately, you can clone or copy [ryankurte/rust-gba-example](https://github.com/ryankurte/rust-gba-example) and start work from there.
 
