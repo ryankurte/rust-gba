@@ -13,6 +13,8 @@
 #[macro_use]
 extern crate embedded_builder;
 
+extern crate gba;
+
 use core::ptr;
 
 pub mod header;

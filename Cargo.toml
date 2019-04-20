@@ -12,3 +12,4 @@ gcc = "0.3.54"
 
 [dependencies]
 embedded-builder = { path = "../rust-embedded-builder" }
+gba = "0.3.2"

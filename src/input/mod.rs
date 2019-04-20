@@ -2,10 +2,9 @@
 
 use embedded_builder::register::Register;
 
-use ::memory::{REG_KEYINPUT};
+use gba::io::keypad::KEYINPUT;
 
 pub struct IO {
-    key_input: Register<u16>,
     state:   u16,
     changed: u16,
 }
@@ -27,12 +26,12 @@ pub enum Keys {
 impl IO {
     /// Create a new IO interface
     pub fn new() -> IO {
-        IO{ key_input: Register::new(REG_KEYINPUT), state: 0, changed: 0 }
+        IO{ state: 0, changed: 0 }
     }
 
     /// Update the key information
     pub fn update(&mut self) {
-        let state = !self.key_input.read().1;
+        let state = !KEYINPUT.read();
         self.changed = state ^ self.state;
         self.state = state;
     }

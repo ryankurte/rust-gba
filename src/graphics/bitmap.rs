@@ -1,9 +1,11 @@
 // Bitmap rendering modes
 
-use memory::{VRAM, IORAM, PALRAM, REG_DISPCNT, DISPCNT, REG_DISPSTAT, DISPSTAT};
+use memory::{VRAM, IORAM, PALRAM};
 
 use embedded_builder::register::Register;
 use embedded_builder::region::Region;
+
+use gba::io::display::{DISPCNT, DISPSTAT, DisplayControlSetting, DisplayMode};
 
 const MODE3: (usize, usize, usize)  = (240, 160, 16);  // Mode 3, 240x160@16bpp single buffer
 const MODE4: (usize, usize, usize)  = (240, 160, 8);   // Mode 4, 240x160@8bpp (pallet lookup) with swap
@@ -30,7 +32,6 @@ pub trait PalletMode<T> {
 pub struct Mode3 {
     ioram: Region<u16>,
     vram: Region<u16>,
-    display_control: Register<u16>,
 }
 
 impl BitmapMode<u16> for Mode3 {
@@ -39,7 +40,6 @@ impl BitmapMode<u16> for Mode3 {
         Mode3{
             ioram: Region::from(IORAM),
             vram: Region::new(VRAM.0 + 0x0000, MODE3.0 * MODE3.1 * MODE3.2),
-            display_control: Register::new(REG_DISPCNT),
         }
     }
 
@@ -55,7 +55,8 @@ impl BitmapMode<u16> for Mode3 {
 
     // Enable mode 3
     fn enable(&mut self) {
-        self.display_control.zero().set_mode(3).enable_bg2(true).write();
+        let dispcnt = DisplayControlSetting::new().with_mode(DisplayMode::Mode3);
+        DISPCNT.write(dispcnt);
     }
 
     // Set pixel value for mode 3
@@ -87,8 +88,6 @@ pub struct Mode4 {
     vram: [Region<u16>; 2],
     pallet: Region<u16>,
     active: SwapBuffer,
-    display_control: Register<u16>,
-    display_status: Register<u16>,
 }
 
 impl BitmapMode<u8> for Mode4 {
@@ -102,8 +101,6 @@ impl BitmapMode<u8> for Mode4 {
             ],
             pallet: Region::new(PALRAM.0, 256),
             active: SwapBuffer::A,
-            display_control: Register::new(REG_DISPCNT),
-            display_status: Register::new(REG_DISPSTAT),
         }
     }
 
@@ -114,23 +111,24 @@ impl BitmapMode<u8> for Mode4 {
 
     // Enable mode 4
     fn enable(&mut self) {
-        self.display_control.zero()
-            .set_mode(4).enable_bg2(true).set_ps(false)
-            .write();
+        let dispcnt = DisplayControlSetting::new().with_mode(DisplayMode::Mode4).with_bg2(true).with_frame1(true);
+        DISPCNT.write(dispcnt);
     }
 
     // Swap active and inactive buffers
     fn swap(&mut self) {
+        let mut dispcnt = DISPCNT.read();
         self.active = match self.active {
             SwapBuffer::A => { 
-                self.display_control.read().set_ps(true).write();
+                dispcnt = dispcnt.with_frame1(true);
                 SwapBuffer::B 
             },
             SwapBuffer::B => { 
-                self.display_control.read().set_ps(false).write();
+                dispcnt = dispcnt.with_frame1(false);
                 SwapBuffer::A 
             },
         };
+        DISPCNT.write(dispcnt);
     }
 
     // Set pixel index (for pallet lookup) for mode 4
@@ -177,7 +175,7 @@ impl PalletMode<u16> for Mode4 {
 
 impl Mode4 {
     pub fn vblank(&mut self) -> bool {
-        self.display_control.read().vblank_status()
+        DISPSTAT.read().vblank_flag()
     }
 }
 
@@ -187,7 +185,6 @@ pub struct Mode5 {
     ioram: Region<u16>,
     vram: [Region<u16>; 2],
     active: SwapBuffer,
-    display_control: Register<u16>,
 }
 
 impl BitmapMode<u16> for Mode5 {
@@ -200,7 +197,6 @@ impl BitmapMode<u16> for Mode5 {
                 Region::new(VRAM.0 + 0xA000, MODE5.0 * MODE5.1 * MODE5.2 / 8),
             ],
             active: SwapBuffer::A,
-            display_control: Register::new(REG_DISPCNT),
         }
     }
 
@@ -211,21 +207,24 @@ impl BitmapMode<u16> for Mode5 {
 
     // Enable mode 5
     fn enable(&mut self) {
-        self.display_control.zero().set_mode(5).enable_bg2(true).write();
+        let dispcnt = DisplayControlSetting::new().with_mode(DisplayMode::Mode5).with_bg2(true).with_frame1(true);
+        DISPCNT.write(dispcnt);
     }
 
     // Swap active and inactive buffers
     fn swap(&mut self) {
+        let mut dispcnt = DISPCNT.read();
         self.active = match self.active {
             SwapBuffer::A => { 
-                self.display_control.read().set_ps(true).write();
+                dispcnt = dispcnt.with_frame1(true);
                 SwapBuffer::B 
             },
             SwapBuffer::B => { 
-                self.display_control.read().set_ps(false).write();
+                dispcnt = dispcnt.with_frame1(false);
                 SwapBuffer::A 
             },
         };
+        DISPCNT.write(dispcnt);
     }
 
     // Set pixel value for mode 5
