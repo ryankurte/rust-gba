@@ -1,14 +1,13 @@
-// Graphics implementation
-// ryankurte/rust-gba
-// Copyright 2018 Ryan Kurte
+//! Graphics implementation
 
-pub mod colour;
 pub mod bitmap;
-pub mod tilemap;
+pub mod colour;
 pub mod helpers;
+pub mod tilemap;
 
-use graphics::bitmap::{BitmapMode};
+use self::bitmap::BitmapMode;
 
+/// Graphics modes
 #[derive(Debug, PartialEq)]
 #[repr(C)]
 pub enum Mode {
@@ -20,44 +19,40 @@ pub enum Mode {
     MODE5,
 }
 
-pub enum None {}
-
+/// Container type for graphics mode information
 pub struct Graphics<T> {
     mode: T,
 }
 
-// Methods for all graphics implementations
-impl <T>Graphics<T> {
+impl<T> Graphics<T> {
+    /// Construct a `Graphics` instance with the given graphics mode
     fn base(mode: T) -> Graphics<T> {
-        Graphics{
-            mode: mode
-        }
+        Graphics { mode: mode }
     }
 
-    // Fetch active graphics mode instance
+    /// Fetch active graphics mode instance
     pub fn active(&mut self) -> &mut T {
         &mut self.mode
     }
-    
-    // Set graphics to mode 3
+
+    /// Set graphics to mode 3
     pub fn mode3(self) -> Graphics<bitmap::Mode3> {
         Graphics::<bitmap::Mode3>::new()
     }
 
-    // Set graphics to mode 3
+    /// Set graphics to mode 4
     pub fn mode4(self) -> Graphics<bitmap::Mode4> {
         Graphics::<bitmap::Mode4>::new()
     }
 
-    // Set graphics to mode 3
+    /// Set graphics to mode 5
     pub fn mode5(self) -> Graphics<bitmap::Mode5> {
         Graphics::<bitmap::Mode5>::new()
     }
 }
 
-// Methods for bitmap::Mode3 graphics
 impl Graphics<bitmap::Mode3> {
-    // Create a new Mode3 graphics instance
+    /// Create a new Mode3 graphics instance
     pub fn new() -> Graphics<bitmap::Mode3> {
         let mut mode = bitmap::Mode3::new();
         mode.enable();
@@ -65,9 +60,8 @@ impl Graphics<bitmap::Mode3> {
     }
 }
 
-// Methods for bitmap::Mode4 graphics
 impl Graphics<bitmap::Mode4> {
-    // Create a new Mode4 graphics instance
+    /// Create a new Mode4 graphics instance
     pub fn new() -> Graphics<bitmap::Mode4> {
         let mut mode = bitmap::Mode4::new();
         mode.enable();
@@ -75,9 +69,8 @@ impl Graphics<bitmap::Mode4> {
     }
 }
 
-// Methods for bitmap::Mode5 graphics
 impl Graphics<bitmap::Mode5> {
-    // Create a new Mode5 graphics instance
+    /// Create a new Mode5 graphics instance
     pub fn new() -> Graphics<bitmap::Mode5> {
         let mut mode = bitmap::Mode5::new();
         mode.enable();

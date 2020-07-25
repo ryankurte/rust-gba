@@ -1,32 +1,35 @@
-
-
-use embedded_builder::register::Register;
+//! User input/output interfaces (key input)
 
 use gba::io::keypad::KEYINPUT;
 
+/// Input/output state
 pub struct IO {
-    state:   u16,
+    state: u16,
     changed: u16,
 }
 
+/// GBA keys
 #[derive(Copy, Clone)]
 pub enum Keys {
-    A       = 1 << 0,
-    B       = 1 << 1,
-    Start   = 1 << 2,
-    Select  = 1 << 3,
-    Right   = 1 << 4,
-    Left    = 1 << 5,
-    Up      = 1 << 6,
-    Down    = 1 << 7,
-    L       = 1 << 8,
-    R       = 1 << 9,
+    A = 1 << 0,
+    B = 1 << 1,
+    Start = 1 << 2,
+    Select = 1 << 3,
+    Right = 1 << 4,
+    Left = 1 << 5,
+    Up = 1 << 6,
+    Down = 1 << 7,
+    L = 1 << 8,
+    R = 1 << 9,
 }
 
 impl IO {
     /// Create a new IO interface
     pub fn new() -> IO {
-        IO{ state: 0, changed: 0 }
+        IO {
+            state: 0,
+            changed: 0,
+        }
     }
 
     /// Update the key information
@@ -58,4 +61,3 @@ impl IO {
         !self.is_pressed(k) && self.toggled(k)
     }
 }
-

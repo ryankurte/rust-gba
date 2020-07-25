@@ -1,39 +1,36 @@
+//! Gameboy Advance support for Rust
+
 // ryankurte/rust-gba
 // Copyright 2018 Ryan Kurte
 
+#![no_std]
 #![feature(lang_items)]
-#![feature(asm)]
-#![feature(global_asm)]
-#![feature(compiler_builtins_lib)]
+#![feature(asm, global_asm)]
 #![feature(const_fn)]
 #![feature(associated_type_defaults)]
-#![no_std]
+#![allow(dead_code, unused_variables)]
 
-
-#[macro_use]
 extern crate embedded_builder;
-
 extern crate gba;
 
 use core::ptr;
 
-pub mod header;
-use header::{Header, LOGO};
-
-pub mod memory;
 pub mod graphics;
+pub mod header;
 pub mod input;
+pub mod memory;
 
-// ARM 32-bit boot code 
+// ARM 32-bit boot code
 // This sets the interrupt and app stack pointers and switches to thumb mode
 // (linked at .text.boot prior to .text.reset_handler)
+#[cfg(target_os = "none")]
 global_asm!(include_str!("gba_crt0.s"));
 
-// Reset handler
+/// Reset handler
+#[cfg(target_os = "none")]
 #[link_section = ".text.reset_handler"]
 #[no_mangle]
 pub unsafe extern "C" fn reset() -> ! {
-    
     extern "C" {
         fn main(argc: isize, argv: *const *const u8) -> isize;
 
@@ -82,45 +79,29 @@ unsafe fn initialize_data(sdata: *mut u32, edata: *mut u32, sidata: *const u32) 
 // ARM 32-bit isr code
 // This pushes to the stack then jumps to isr_master in thumb mode
 // And returns from the interrupt following execution
+#[cfg(target_os = "none")]
 global_asm!(include_str!("gba_isr.s"));
 
 /// Handle interrupts from a thumb context
+#[cfg(target_os = "none")]
 #[no_mangle]
 pub unsafe extern "C" fn isr_master() {
     // TODO: read interrupt registers and handle
 }
 
-// Default ROM header
-#[link_section = ".header.header"]
+/// ROM header
+#[cfg_attr(target_os = "none", link_section = ".header.header")]
 #[used]
-static HEADER: Header = Header {
-    start_code: 0xEA00002E,     // Jump to start_code2 (0x080000c0)
-    logo: LOGO,
-    title: [0u8; 12],
-    game_code: 0x00000000,
-    maker_code: 0x3130,
-    fixed: 0x96,
-    unit_code: 0x00,
-    device_type: 0x80,
-    unused: [0u8; 0x07],
-    game_version: 0x00,
-    complement: 0x00,
-    checksum: 0x0000,
-    start_code2: 0xEA000008,    // Jump to _boot (0x080000e0)
-    boot_method: 0x00,
-    slave_number: 0x00,
-    reserved: [0u8; 26],
-};
+static HEADER: self::header::Header = self::header::Header::default();
 
-// Rust no-std stubs
-
-use core::panic::PanicInfo;
-
+/// Panic handler stub
+#[cfg(target_os = "none")]
 #[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
+fn panic(_info: &core::panic::PanicInfo) -> ! {
     loop {}
 }
 
+#[cfg(target_os = "none")]
 #[lang = "start"]
 extern "C" fn start<T>(user_main: fn() -> T, _argc: isize, _argv: *const *const u8) -> isize
 where
@@ -129,11 +110,13 @@ where
     user_main().report() as isize
 }
 
+#[cfg(target_os = "none")]
 #[lang = "termination"]
 trait Termination {
     fn report(self) -> i32;
 }
 
+#[cfg(target_os = "none")]
 impl Termination for () {
     fn report(self) -> i32 {
         0

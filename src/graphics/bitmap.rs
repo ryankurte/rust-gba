@@ -1,33 +1,59 @@
-// Bitmap rendering modes
+//! Bitmap rendering modes
 
-use memory::{VRAM, IORAM, PALRAM};
-
-use embedded_builder::register::Register;
 use embedded_builder::region::Region;
+use gba::io::display::{DisplayControlSetting, DisplayMode, DISPCNT, DISPSTAT};
 
-use gba::io::display::{DISPCNT, DISPSTAT, DisplayControlSetting, DisplayMode};
+use crate::memory::{IORAM, PALRAM, VRAM};
 
-const MODE3: (usize, usize, usize)  = (240, 160, 16);  // Mode 3, 240x160@16bpp single buffer
-const MODE4: (usize, usize, usize)  = (240, 160, 8);   // Mode 4, 240x160@8bpp (pallet lookup) with swap
-const MODE5: (usize, usize, usize)  = (160, 128, 16);  // Mode 5, 160x128@16bpp with swap
+/// Mode 3, 240x160@16bpp single buffer
+const MODE3: (usize, usize, usize) = (240, 160, 16);
 
-#[doc = "Bitmap mode implemented by bitmap rendering modes"]
+/// Mode 4, 240x160@8bpp (pallet lookup) with swap
+const MODE4: (usize, usize, usize) = (240, 160, 8);
+
+/// Mode 5, 160x128@16bpp with swap
+const MODE5: (usize, usize, usize) = (160, 128, 16);
+
+/// Bitmap mode trait, implemented by bitmap rendering modes
 pub trait BitmapMode<T> {
+    /// Create a new instance of the rendering mode.
     fn new() -> Self;
+
+    /// Return the bounds of the rendering mode, as a tuple of
+    /// `(width, height, depth)`.
     fn bounds(&self) -> (usize, usize, usize);
+
+    /// Enables the rendering mode.
     fn enable(&mut self);
+
+    /// Swaps the buffers, for double-buffer rendering modes.
     fn swap(&mut self);
+
+    /// Set a pixel at `(x, y)` to the colour `c`.
+    ///
+    /// This operates on the inactive buffer, for double-buffer rendering
+    /// modes.
     fn set(&mut self, x: usize, y: usize, c: T);
+
+    /// Clears the buffer.
+    ///
+    /// This operates on the inactive buffer, for double-buffer rendering
+    /// modes.
     fn clear(&mut self);
 }
 
-#[doc = "Pallet mode implemented by bitmap modes with pallet lookup"]
+/// Pallet mode trait, implemented by bitmap modes with pallet lookup
 pub trait PalletMode<T> {
+    /// Set the pallet index `i` to the colour `c`.
     fn set_pallet(&mut self, i: usize, c: T);
+
+    /// Get the colour at the pallet index `i`.
     fn get_pallet(&self, i: usize) -> T;
 }
 
-#[doc = "Mode 3 240x16 16-bit single buffered"]
+/// Graphics mode 3 - 240x160@16bpp, single-buffer
+///
+/// Note: The `swap()` operation on a mode 3 graphics instance is a no-op.
 #[derive(Debug, PartialEq)]
 pub struct Mode3 {
     ioram: Region<u16>,
@@ -35,36 +61,30 @@ pub struct Mode3 {
 }
 
 impl BitmapMode<u16> for Mode3 {
-    // Create a new mode3 instance
     fn new() -> Mode3 {
-        Mode3{
+        Mode3 {
             ioram: Region::from(IORAM),
             vram: Region::new(VRAM.0 + 0x0000, MODE3.0 * MODE3.1 * MODE3.2),
         }
     }
 
-    // Get mode3 bounds
     fn bounds(&self) -> (usize, usize, usize) {
         MODE3
     }
 
-    // Swap buffers (not implemented in Mode3)
     fn swap(&mut self) {
-
+        // Mode 3 is not double-buffered.
     }
 
-    // Enable mode 3
     fn enable(&mut self) {
         let dispcnt = DisplayControlSetting::new().with_mode(DisplayMode::Mode3);
         DISPCNT.write(dispcnt);
     }
 
-    // Set pixel value for mode 3
     fn set(&mut self, x: usize, y: usize, c: u16) {
-        self.vram.write_index(x+y*MODE3.0, c);
+        self.vram.write_index(x + y * MODE3.0, c);
     }
 
-    // Clear the display
     fn clear(&mut self) {
         for x in 0..self.bounds().0 {
             for y in 0..self.bounds().1 {
@@ -74,14 +94,14 @@ impl BitmapMode<u16> for Mode3 {
     }
 }
 
-#[doc = "Swap buffer enumeration"]
+/// Swap buffer enumeration
 #[derive(Debug, PartialEq)]
 enum SwapBuffer {
     A,
-    B
+    B,
 }
 
-#[doc = "Mode 4 240x160 8-bit pallet lookup with swap buffer"]
+/// Graphics mode 4 - 240x160@8bpp, double-buffered
 #[derive(Debug, PartialEq)]
 pub struct Mode4 {
     ioram: Region<u16>,
@@ -91,12 +111,11 @@ pub struct Mode4 {
 }
 
 impl BitmapMode<u8> for Mode4 {
-    // Create a new mode4 instance
     fn new() -> Mode4 {
-        Mode4{
+        Mode4 {
             ioram: Region::from(IORAM),
             vram: [
-                Region::new(VRAM.0 + 0x0000, MODE4.0 * MODE4.1 * MODE4.2 / 8), 
+                Region::new(VRAM.0 + 0x0000, MODE4.0 * MODE4.1 * MODE4.2 / 8),
                 Region::new(VRAM.0 + 0xA000, MODE4.0 * MODE4.1 * MODE4.2 / 8),
             ],
             pallet: Region::new(PALRAM.0, 256),
@@ -104,36 +123,33 @@ impl BitmapMode<u8> for Mode4 {
         }
     }
 
-    // Get mode4 bounds
     fn bounds(&self) -> (usize, usize, usize) {
         MODE4
     }
 
-    // Enable mode 4
     fn enable(&mut self) {
-        let dispcnt = DisplayControlSetting::new().with_mode(DisplayMode::Mode4).with_bg2(true).with_frame1(true);
+        let dispcnt = DisplayControlSetting::new()
+            .with_mode(DisplayMode::Mode4)
+            .with_bg2(true)
+            .with_frame1(true);
         DISPCNT.write(dispcnt);
     }
 
-    // Swap active and inactive buffers
     fn swap(&mut self) {
         let mut dispcnt = DISPCNT.read();
         self.active = match self.active {
-            SwapBuffer::A => { 
+            SwapBuffer::A => {
                 dispcnt = dispcnt.with_frame1(true);
-                SwapBuffer::B 
-            },
-            SwapBuffer::B => { 
+                SwapBuffer::B
+            }
+            SwapBuffer::B => {
                 dispcnt = dispcnt.with_frame1(false);
-                SwapBuffer::A 
-            },
+                SwapBuffer::A
+            }
         };
         DISPCNT.write(dispcnt);
     }
 
-    // Set pixel index (for pallet lookup) for mode 4
-    // This writes to the currently inactive buffer
-    // Note that VRAM can only be written in 16-bit chunks
     fn set(&mut self, x: usize, y: usize, c: u8) {
         let i = x + y * MODE3.0;
         let vram = match self.active {
@@ -149,7 +165,6 @@ impl BitmapMode<u8> for Mode4 {
         vram.write_index(i / 2, v);
     }
 
-    // Clear the currently inactive buffer
     fn clear(&mut self) {
         for x in 0..self.bounds().0 {
             for y in 0..self.bounds().1 {
@@ -160,14 +175,10 @@ impl BitmapMode<u8> for Mode4 {
 }
 
 impl PalletMode<u16> for Mode4 {
-    // Set pallet sets the pallet colour at a given index
-    // These indices are used in the set function to specify colour
     fn set_pallet(&mut self, i: usize, c: u16) {
         self.pallet.write_index(i, c)
     }
 
-    // Set pallet sets the pallet colour at a given index
-    // These indices are used in the set function to specify colour
     fn get_pallet(&self, i: usize) -> u16 {
         *self.pallet.read_index(i)
     }
@@ -179,7 +190,7 @@ impl Mode4 {
     }
 }
 
-#[doc = "Mode 5 160x128 16-bit colour with swap buffer"]
+/// Graphics mode 5 - 160x128@16bpp, double-buffered
 #[derive(Debug, PartialEq)]
 pub struct Mode5 {
     ioram: Region<u16>,
@@ -188,56 +199,55 @@ pub struct Mode5 {
 }
 
 impl BitmapMode<u16> for Mode5 {
-    // Create a new mode5 instance
     fn new() -> Mode5 {
-        Mode5{
+        Mode5 {
             ioram: Region::from(IORAM),
-             vram: [
-                Region::new(VRAM.0 + 0x0000, MODE5.0 * MODE5.1 * MODE5.2 / 8), 
+            vram: [
+                Region::new(VRAM.0 + 0x0000, MODE5.0 * MODE5.1 * MODE5.2 / 8),
                 Region::new(VRAM.0 + 0xA000, MODE5.0 * MODE5.1 * MODE5.2 / 8),
             ],
             active: SwapBuffer::A,
         }
     }
 
-    // Get mode5 bounds
     fn bounds(&self) -> (usize, usize, usize) {
         MODE5
     }
 
-    // Enable mode 5
     fn enable(&mut self) {
-        let dispcnt = DisplayControlSetting::new().with_mode(DisplayMode::Mode5).with_bg2(true).with_frame1(true);
+        let dispcnt = DisplayControlSetting::new()
+            .with_mode(DisplayMode::Mode5)
+            .with_bg2(true)
+            .with_frame1(true);
         DISPCNT.write(dispcnt);
     }
 
-    // Swap active and inactive buffers
     fn swap(&mut self) {
         let mut dispcnt = DISPCNT.read();
         self.active = match self.active {
-            SwapBuffer::A => { 
+            SwapBuffer::A => {
                 dispcnt = dispcnt.with_frame1(true);
-                SwapBuffer::B 
-            },
-            SwapBuffer::B => { 
+                SwapBuffer::B
+            }
+            SwapBuffer::B => {
                 dispcnt = dispcnt.with_frame1(false);
-                SwapBuffer::A 
-            },
+                SwapBuffer::A
+            }
         };
         DISPCNT.write(dispcnt);
     }
 
-    // Set pixel value for mode 5
-    // This writes to the currently inactive buffer
-    // Note that VRAM can only be written in 16-bit chunks
     fn set(&mut self, x: usize, y: usize, c: u16) {
         match self.active {
-            SwapBuffer::A => { self.vram[1].write_index(x + y * MODE5.0, c); },
-            SwapBuffer::B => { self.vram[0].write_index(x + y * MODE5.0, c); },
+            SwapBuffer::A => {
+                self.vram[1].write_index(x + y * MODE5.0, c);
+            }
+            SwapBuffer::B => {
+                self.vram[0].write_index(x + y * MODE5.0, c);
+            }
         };
     }
 
-    // Clear the currently inactive buffer
     fn clear(&mut self) {
         for x in 0..self.bounds().0 {
             for y in 0..self.bounds().1 {
