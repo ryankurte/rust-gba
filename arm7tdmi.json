@@ -1,4 +1,12 @@
 {
+  "llvm-target": "arm-none-eabi",
+  "data-layout": "e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64",
+  "arch": "arm",
+  "cpu": "arm7tdmi",
+  "target-endian": "little",
+  "target-pointer-width": "32",
+  "target-c-int-width": "32",
+  "max-atomic-width": 32,
   "abi-blacklist": [
     "stdcall",
     "fastcall",
@@ -7,30 +15,19 @@
     "win64",
     "sysv64"
   ],
-  "arch": "arm",
-  "cpu": "arm7tdmi",
-  "data-layout": "e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64",
-  "env": "",
-  "executables": true,
-  "linker": "arm-none-eabi-ld",
-  "linker-flavor": "ld",
-  "llvm-target": "arm-none-eabi",
-  "max-atomic-width": 32,
+
   "os": "none",
+  "executables": true,
   "panic-strategy": "abort",
   "relocation-model": "static",
-  "target-c-int-width": "32",
-  "target-endian": "little",
-  "target-pointer-width": "32",
-  "vendor": "",
+
+  "linker": "rust-lld",
+  "linker-flavor": "ld.lld",
   "pre-link-args": {
-    "ld": [
-      "-mthumb",
-      "-mthumb-interwork"
-    ]
+    "ld.lld": []
   },
   "post-link-args": {
-    "ld": [
+    "ld.lld": [
       "-Tgba_cart.ld"
     ]
   }

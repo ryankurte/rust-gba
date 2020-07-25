@@ -9,18 +9,18 @@ OUTPUT_ARCH(arm)
 MEMORY
 {
   ROM    : ORIGIN = 0x08000000, LENGTH = 32M
-  EWRAM	 : ORIGIN = 0x02000000, LENGTH = 256K
-  IWRAM	 : ORIGIN = 0x03000000, LENGTH = 32K
+  EWRAM  : ORIGIN = 0x02000000, LENGTH = 256K
+  IWRAM  : ORIGIN = 0x03000000, LENGTH = 32K
 }
 
-__text_start	=	ORIGIN(ROM);
+__text_start  = ORIGIN(ROM);
 __app_start   = __text_start + 0xe0;
-__eheap_end	=	ORIGIN(EWRAM) + LENGTH(EWRAM);
-__iwram_start	=	ORIGIN(IWRAM);
-__iwram_top	=	ORIGIN(IWRAM) + LENGTH(IWRAM);;
-__sp_irq	=	__iwram_top - 0x060;
-__sp_usr	=	__sp_irq - 0x0a0;
-__irq_flags	=	0x03007ff8;
+__eheap_end.  = ORIGIN(EWRAM) + LENGTH(EWRAM);
+__iwram_start = ORIGIN(IWRAM);
+__iwram_top   = ORIGIN(IWRAM) + LENGTH(IWRAM);
+__sp_irq      = __iwram_top - 0x060;
+__sp_usr      = __sp_irq - 0x0a0;
+__irq_flags   = 0x03007ff8;
 
 SECTIONS
 {
@@ -64,9 +64,12 @@ SECTIONS
     *(.bss); 
 
     . = ALIGN(4); 
-    _ebss = .;  
+    _ebss = .;
   } > IWRAM
 
   /* discard arm symbols */
-  /DISCARD/ : { *(.ARM.exidx.*); }
+  /DISCARD/ :
+  {
+    *(.ARM.exidx .ARM.exidx.*);
+  }
 }
