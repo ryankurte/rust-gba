@@ -48,3 +48,9 @@ pub const B: Colour = Colour(rgb16!(0, 0, Colour::MAX));
 
 /// Helper colour: Violet
 pub const V: Colour = Colour(rgb16!(Colour::MAX / 2, 0, Colour::MAX));
+
+/// Helper colour: White
+pub const W: Colour = Colour(rgb16!(Colour::MAX, Colour::MAX, Colour::MAX));
+
+/// Helper colour: Black
+pub const BL: Colour = Colour(rgb16!(0, 0, 0));
