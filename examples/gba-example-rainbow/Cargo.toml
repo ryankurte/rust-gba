@@ -1,0 +1,13 @@
+[package]
+name = "gba-example-rainbow"
+version = "0.1.0"
+authors = [
+    "Ryan Kurte <ryankurte@gmail.com>",
+    "Lauren Jenkinson <lauren@iris.ac.nz>",
+]
+
+edition = "2018"
+publish = false
+
+[dependencies]
+gba-core = { path = "../.." }

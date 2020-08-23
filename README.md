@@ -2,7 +2,7 @@
 
 Gameboy Advanced support for rust based on the [embedonomicon](https://japaric.github.io/embedonomicon/).
 
-Check out [ryankurte/rust-gba-example](https://github.com/ryankurte/rust-gba-example) for a working example.
+Check out `examples/gba-example-rainbow/` for a working example.
 
 ## Status
 
@@ -11,14 +11,21 @@ At the moment this pretty much just boots. In the future, it'd be neat to have d
 ## Usage
 
 1. Create a new `#[no_std]` binary project with `cargo new --bin`
-2. Add `gba = { git = "https://github.com/ryankurte/rust-gba" }` as a dependency
-3. Copy `arm7tdmi.json`, `.cargo/config`, `Xargo.toml` and optionally `makefile` from this into your project root
-4. Build with `cargo xbuild --target arm7tdmi.json --release`
+2. Add `gba-core = { git = "https://github.com/ryankurte/rust-gba" }` as a dependency
+3. Copy `arm7tdmi.json`,  `gba_cart.ld`, and `Makefile` from this repository into your project root
+4. Edit `Makefile`, changing the `APP` variable to the name of your binary
+5. Run `make clean all` to build the ROM image
 
-Alternately, you can clone or copy [ryankurte/rust-gba-example](https://github.com/ryankurte/rust-gba-example) and start work from there.
+Alternately, you can copy the example from `examples/gba-example-rainbow/` and work from there.
+The `Makefile` in the example is pretty bare-bones, but it's enough to get a working ROM image.
 
-For more useful commands, check out the [makefile](https://github.com/ryankurte/rust-gba/blob/master/makefile)
+## Helpers
 
+This repo contains some (potentially) helpful utilities for GBA development. The source of these can be found in the `src/bin/` directory.
+
+### gbafix
+
+A Rust reimplementation of the `gbafix` tool, which you can use instead of the DevkitPro version when building GBA ROM images, is included as the `gbafix` binary.
 
 ## Resources
 
@@ -36,7 +43,3 @@ For more useful commands, check out the [makefile](https://github.com/ryankurte/
 - [DevKitPro gbafix rom fixer](https://github.com/devkitPro/gba-tools/blob/master/src/gbafix.c)
 - [DevKitPro cartrige linker script](https://github.com/devkitPro/buildscripts/blob/master/dkarm-eabi/crtls/gba_cart.ld)
 - [DevKitPro crt0 startup script](https://github.com/devkitPro/buildscripts/blob/master/dkarm-eabi/crtls/gba_crt0.s)
-
-
-
-
